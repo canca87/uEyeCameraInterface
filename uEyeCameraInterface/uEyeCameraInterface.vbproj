@@ -103,6 +103,13 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="CameraLoadingSplash.Designer.vb">
+      <DependentUpon>CameraLoadingSplash.vb</DependentUpon>
+    </Compile>
+    <Compile Include="CameraLoadingSplash.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MainCaptureWindow.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -140,6 +147,9 @@
     <Compile Include="WebcamCapture.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="CameraLoadingSplash.resx">
+      <DependentUpon>CameraLoadingSplash.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainCaptureWindow.resx">
       <DependentUpon>MainCaptureWindow.vb</DependentUpon>
     </EmbeddedResource>

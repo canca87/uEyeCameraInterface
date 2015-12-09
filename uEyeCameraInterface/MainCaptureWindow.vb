@@ -87,8 +87,22 @@ Public Class MainCaptureWindow
         Dim statusRet As uEye.Defines.Status 'A store for the camera status output
 
         'open the camera:
+        'If the user opens the software before the camera has been properly detected by windows it will return the unknown error "1".
+        'Watch for this error, and give the PC 30 seconds to load it, check the camera every loop...
         statusRet = cam.Init()
+        If statusRet = 1 Then
+            Logs.WriteToEventLog("Detected that the user started the software before the camera was ready. Waiting...")
+            Dim stpw As New Stopwatch
+            stpw.Start()
+            While statusRet = 3 And stpw.Elapsed.Seconds < 30
+                statusRet = cam.Init()
+            End While
+            Logs.WriteToEventLog("Waited " & stpw.Elapsed.Seconds & " seconds for the camera to be ready.")
+            stpw.Stop()
+        End If
+
         If (statusRet <> uEye.Defines.Status.Success) Then
+            CameraLoadingSplash.Hide()
             Logs.WriteToEventLog("Could not find a uEye camera.")
             Logs.WriteToErrorLog(cam.ToString, "uEye status returned value '" & statusRet.ToString & "'. A successfull camera connection should return value '" & uEye.Defines.Status.Success & "'.", "uEye Camera not found")
             RaiseEvent NoUeyeFound()
@@ -100,9 +114,16 @@ Public Class MainCaptureWindow
         If (statusRet <> uEye.Defines.Status.Success) Then
             Logs.WriteToErrorLog(cam.ToString, "uEye status returned value '" & statusRet.ToString & "'. A successfull memory allocation should return value '" & uEye.Defines.Status.Success &
                                  vbCrLf & "'. Attempted to run the function 'cam.Memory.Allocate(" & MemId.ToString & ",True) but failed.", "uEye Camera memory initalisation error")
-            MessageBox.Show("Allocation of camera memory buffer failed")
-            RaiseEvent NoUeyeFound()
-            Exit Sub
+
+            statusRet = cam.Memory.GetActive(MemId)
+            If (statusRet <> uEye.Defines.Status.Success) Then
+                Logs.WriteToErrorLog(cam.ToString, "uEye status returned value '" & statusRet.ToString & "'. A successfull memory location should return value '" & uEye.Defines.Status.Success &
+                                 vbCrLf & "'. Attempted to run the function 'cam.Memory.getActive(" & MemId.ToString & ") but failed.", "uEye Camera memory initalisation error")
+                MessageBox.Show("Allocation of camera memory buffer failed")
+                RaiseEvent NoUeyeFound()
+                Exit Sub
+            End If
+
         End If
         uCamActive = True
 
